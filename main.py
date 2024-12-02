@@ -1,10 +1,23 @@
 import pickle
 import discord
 import os
-from flask import Flask
+from flask import Flask, logging
 from threading import Thread
 from hugchat import hugchat
 from hugchat.login import Login
+
+# Flaskで簡単なサーバーを作成
+app = Flask(__name__)
+
+# ロガーの設定
+handler = logging.StreamHandler()
+handler.setLevel(logging.INFO)  # ログレベルを設定
+formatter = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+handler.setFormatter(formatter)
+app.logger.addHandler(handler)
+app.logger.setLevel(logging.INFO)
 
 # Hugging Chatのログイン情報
 EMAIL = os.getenv("HUGGING_EMAIL")
@@ -32,7 +45,7 @@ client = discord.Client(intents=discord.Intents.default())
 
 @client.event
 async def on_ready():
-    print('ログインしました')
+    app.logger.info("ログインしました。")
 
 
 @client.event
@@ -48,9 +61,6 @@ async def on_message(message):
     message_result = chatbot.chat(message.content)
     response = message_result.wait_until_done()
     await message.channel.send(response)
-
-# Flaskで簡単なサーバーを作成
-app = Flask(__name__)
 
 
 @app.route('/')
